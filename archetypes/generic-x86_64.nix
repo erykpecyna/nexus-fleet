@@ -22,7 +22,7 @@
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
-    # TODO(operator): replace with the operator's real id_ed25519.pub
+    # Operator's provisioning key (roadmap 2.2 close-out).
     "ssh-ed25519 UNCONFIGURED provisioning"
   ];
 
@@ -40,4 +40,8 @@
   nix.gc.automatic = lib.mkDefault true;
   nix.gc.options = lib.mkDefault "--delete-older-than 30d";
   boot.loader.systemd-boot.configurationLimit = lib.mkDefault 10;
+
+  # NixOS 25.05 was current when the fleet repo was created. Bump only
+  # deliberately (migration notes per release).
+  system.stateVersion = "25.05";
 }
