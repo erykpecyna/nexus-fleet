@@ -45,6 +45,6 @@ The release workflow in the nexus repo will do this automatically
 
 - ~~`keys/update-trust.pub` still says UNCONFIGURED~~ RESOLVED
   (minisign key `192AB4D245840C75`, 2026-08-31).
-- archetype root ssh key still `UNCONFIGURED` (operator's
-  id_ed25519.pub pending).
+- ~~archetype root ssh key still `UNCONFIGURED`~~ RESOLVED
+  (operator `id_ed25519.pub`, 2026-08-31).
 - Binary cache (attic) deferred; image builds are source builds.

@@ -23,7 +23,7 @@
 
   users.users.root.openssh.authorizedKeys.keys = [
     # Operator's provisioning key (roadmap 2.2 close-out).
-    "ssh-ed25519 UNCONFIGURED provisioning"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFJKbSslrYfa1Kcs0wgiQjwdPOfgr9YQJE9iLhf2MIc1 eryk.pecyna@gmail.com"
   ];
 
   networking.firewall.allowedTCPPorts = [ 22 ];
