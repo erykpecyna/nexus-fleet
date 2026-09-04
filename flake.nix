@@ -2,24 +2,14 @@
   description = "nexus fleet — node archetypes and inventory (public)";
 
   inputs = {
-    # Fleet's nixpkgs tracks the nexus repo's pin (follows nexus/nixpkgs):
-    # the module/VM-test evidence lives against that exact nixpkgs, and
-    # a divergent fleet pin could drift the closure. nexus bumps its
-    # pin; fleet re-locks and inherits. (No url attr — a follows input
-    # cannot also carry one.)
-    nixpkgs.follows = "nexus/nixpkgs";
-
-    # The nexus source. PRIVATE repo — pinned via git+ssh (evaluators
-    # are the dev box + release CI with a deploy key; nodes never
-    # evaluate this flake, they receive prebuilt closures via
-    # nix copy / the attic substituter). Pinned BY TAG in steady
-    # state: releases move this ref to the published tag (README
-    # "Releasing a new nexus version"). Placeholder = current main
-    # until the first release workflow exists.
-    # TODO(3.3): point at the real release tag, e.g.
-    #   nexus.url = "git+ssh://git@github.com/erykpecyna/nexus.git?ref=v0.1.0";
-    nexus.url = "git+ssh://git@github.com/erykpecyna/nexus.git?ref=main";
-    nexus.flake = true;
+    # Pinned directly (was follows = nexus/nixpkgs — the follows
+    # workaround existed only because this repo consumed the private
+    # nexus source, which it no longer does; POLICY: the fleet is
+    # docker-only, it never reads nexus source, only prebuilt
+    # ghcr.io/erykpecyna/nexus-node:<version> images). The pin
+    # matches the nexus repo's nixpkgs rev (its module/VM-test
+    # evidence lives against that nixpkgs); bump deliberately.
+    nixpkgs.url = "github:NixOS/nixpkgs/d2f67949798825fe853f7c5d0492b8bf016d3f88";
 
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
@@ -27,11 +17,10 @@
     };
   };
 
-  outputs = { self, nixpkgs, nexus, nixos-generators, ... }:
+  outputs = { self, nixpkgs, nixos-generators, ... }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-      archetype = import ./archetypes/generic-x86_64.nix { inherit nexus; };
+      archetype = import ./archetypes/generic-x86_64.nix;
     in
     {
       # Per-node configs (inventory). node1 = first VM. Imports the
@@ -47,8 +36,8 @@
       };
 
       # Bootable qcow2 disk image for node1 (hypervisor import).
-      # NOTE: first build compiles nexus-node from source via the
-      # nexus input (no binary cache yet). Evaluation stays fast.
+      # Docker-only fleet: no nexus source build here — the node boots
+      # and pulls its nexus image at runtime. Evaluation is fast.
       packages.${system}.node1-qcow2 =
         nixos-generators.nixosGenerate {
           inherit system;

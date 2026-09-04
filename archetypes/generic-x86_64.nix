@@ -4,16 +4,19 @@
 # settings (hostname, id, location, seed). The nexus-node service,
 # sshd, firewall and the updater trust anchor are fixed here so one
 # archetype defines what "a nexus node" is.
-{ nexus }:
-{ config, lib, pkgs, ... }:
+#
+# Docker-only fleet (PLAN_GHCR_FLEET.md WS3): the service runs a
+# prebuilt ghcr.io/erykpecyna/nexus-node:<version> image via the
+# fleet's MIRROR module (modules/nexus-node-fleet.nix) — this repo
+# never imports the private nexus repo's source.
+{ lib, ... }:
 {
-  imports = [ nexus.nixosModules.nexus-node ];
+  imports = [ ../modules/nexus-node-fleet.nix ];
 
-  services.nexus-node = {
-    enable = true;
-    # metrics/loki defaults come from the nexus module; per-node
-    # overrides belong in nodes/*.nix, not here.
-  };
+  # Every fleet node runs the service. containerImage has NO default
+  # in the mirror module on purpose — a node file that forgets to pin
+  # an image fails evaluation loudly (never float on a mutable tag).
+  services.nexus-node.enable = true;
 
   services.openssh = {
     enable = true;

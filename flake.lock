@@ -1,44 +1,5 @@
 {
   "nodes": {
-    "flake-utils": {
-      "inputs": {
-        "systems": "systems"
-      },
-      "locked": {
-        "lastModified": 1731533236,
-        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "nexus": {
-      "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs",
-        "nixpkgs-legacy": "nixpkgs-legacy"
-      },
-      "locked": {
-        "lastModified": 1788293995,
-        "narHash": "sha256-6kysJNNMCxNOk0+oczWJtJej+46nF5xugsOgsEkivbQ=",
-        "ref": "main",
-        "rev": "76dc4a43e291e2d250f1c1502d90aea695b3bebb",
-        "revCount": 159,
-        "type": "git",
-        "url": "ssh://git@github.com/erykpecyna/nexus.git"
-      },
-      "original": {
-        "ref": "main",
-        "type": "git",
-        "url": "ssh://git@github.com/erykpecyna/nexus.git"
-      }
-    },
     "nixlib": {
       "locked": {
         "lastModified": 1736643958,
@@ -86,50 +47,15 @@
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-unstable",
         "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs-legacy": {
-      "locked": {
-        "lastModified": 1767481810,
-        "narHash": "sha256-/X7h3wG8yP7/LyTI7Mnrnxq3OAZGlK0ONcNZFUXNcY0=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "6704ff3a03322036da3d7cbfdbcb6f454d59591b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "6704ff3a03322036da3d7cbfdbcb6f454d59591b",
+        "rev": "d2f67949798825fe853f7c5d0492b8bf016d3f88",
         "type": "github"
       }
     },
     "root": {
       "inputs": {
-        "nexus": "nexus",
         "nixos-generators": "nixos-generators",
-        "nixpkgs": [
-          "nexus",
-          "nixpkgs"
-        ]
-      }
-    },
-    "systems": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

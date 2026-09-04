@@ -1,0 +1,60 @@
+# Fleet eval gates — push to main. NO SECRETS (policy: the public
+# nexus-fleet repo must never hold a credential that reads/writes
+# the private nexus repo). Safe since the flake has no nexus input:
+# nodes run prebuilt ghcr.io/erykpecyna/nexus-node:<version> images
+# (docker-only fleet) — evaluation never fetches nexus source.
+#
+# Eval-only by design: while the GHCR package is PRIVATE, hosted
+# runners must not `docker pull` it (that would need a secret). The
+# first real pull proof happens on the .213 host. When the package
+# flips public, a pull-smoke job can be added.
+#
+# Gates double as a schema-drift tripwire for the mirror module
+# (modules/nexus-node-fleet.nix) — option renames fail loudly here.
+name: eval
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  eval-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v16
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+      - name: Gate 1 — node1 toplevel evaluates
+        run: nix eval .#nixosConfigurations.node1.config.system.build.toplevel.drvPath --raw
+      - name: Gate 2 — node runs the docker (prebuilt-image) mode
+        run: |
+          actual=$(nix eval .#nixosConfigurations.node1.config.virtualisation.docker.enable --json)
+          [ "$actual" = "true" ] || { echo "::error::virtualisation.docker.enable = $actual, expected true"; exit 1; }
+      - name: Gate 3 — image is a pinned GHCR nexus-node image
+        run: |
+          image=$(nix eval --raw .#nixosConfigurations.node1.config.services.nexus-node.containerImage)
+          case "$image" in
+            ghcr.io/erykpecyna/nexus-node:*) ;;
+            *) echo "::error::containerImage '$image' is not a pinned ghcr.io/erykpecyna/nexus-node:<version> image"; exit 1 ;;
+          esac
+          case "$image" in
+            *:latest|*@latest) echo "::error::containerImage must pin an explicit version, not a mutable tag"; exit 1 ;;
+          esac
+          echo "image: $image"
+      - name: Gate 4 — transport is iroh
+        run: |
+          actual=$(nix eval --raw .#nixosConfigurations.node1.config.services.nexus-node.transport)
+          [ "$actual" = "iroh" ] || { echo "::error::transport = $actual, expected iroh"; exit 1; }
+      - name: Gate 5 — firewall [22, 8080, 9464]
+        run: |
+          actual=$(nix eval --json .#nixosConfigurations.node1.config.networking.firewall.allowedTCPPorts)
+          expected='[22,8080,9464]'
+          [ "$actual" = "$expected" ] || { echo "::error::allowedTCPPorts = $actual, expected $expected"; exit 1; }
+          echo "firewall: $actual"
