@@ -17,7 +17,8 @@
 #     production.
 # Image contract: REST 8080, gRPC 9090 (legacy), metrics 9464, state
 # VOLUME /var/lib/nexus (iroh key persistence), config
-# /etc/nexus/node.json, NEXUS_LOKI_URL read by the binary.
+# /etc/nexus/node.json, NEXUS_LOKI_URL + NEXUS_METRICS_OTLP_URL read
+# by the binary.
 { config, lib, pkgs, ... }:
 
 let
@@ -36,6 +37,7 @@ let
     key_path = cfg.keyPath;
     relay_urls = if cfg.relayUrls != [ ] then cfg.relayUrls else null;
     loki_url = cfg.lokiUrl;
+    metrics_otlp_url = cfg.metricsOtlpUrl;
     rest_port = 8080;
     metrics_port = if cfg.metricsEnabled then 9464 else null;
   };
@@ -107,6 +109,16 @@ in
         + "(e.g. http://loki:3100/otlp/v1/logs). Null = disabled.";
     };
 
+    metricsOtlpUrl = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description =
+        "OTLP/HTTP push URL for metrics — VictoriaMetrics "
+        + "(e.g. http://vm:8428/opentelemetry/v1/metrics). Null = "
+        + "disabled; the pull endpoint (metricsPort) is independent "
+        + "of this. Push is how nodes appear in Grafana on first boot.";
+    };
+
     transport = lib.mkOption {
       type = lib.types.enum [ "grpc" "iroh" ];
       default = "iroh";
@@ -162,6 +174,8 @@ in
           "-p 9090:9090"
         ] ++ lib.optionals (cfg.lokiUrl != null) [
           "-e NEXUS_LOKI_URL=${cfg.lokiUrl}"
+        ] ++ lib.optionals (cfg.metricsOtlpUrl != null) [
+          "-e NEXUS_METRICS_OTLP_URL=${cfg.metricsOtlpUrl}"
         ] ++ [
           cfg.containerImage
         ]);

@@ -18,6 +18,9 @@
     longitude = null;
     # Log shipping to the monitoring stack on .213.
     lokiUrl = "http://192.168.0.213:3100/otlp/v1/logs";
+    # Metrics push (VictoriaMetrics OTLP ingest) — the node appears
+    # in Grafana on its first push; no scrape config needed.
+    metricsOtlpUrl = "http://192.168.0.213:8428/opentelemetry/v1/metrics";
   };
 
   # Remaining identity is DATA (module design): provisioning may
