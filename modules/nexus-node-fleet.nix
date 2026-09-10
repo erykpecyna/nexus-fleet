@@ -40,7 +40,14 @@ let
     metrics_otlp_url = cfg.metricsOtlpUrl;
     rest_port = 8080;
     metrics_port = if cfg.metricsEnabled then 9464 else null;
-  };
+  } // (if cfg.mgmt.enable then {
+    # Same contract as the canonical module's docker mode: node.json
+    # points at the canonical container path; the ExecStart below
+    # bind-mounts the host token file there.
+    mgmt_listen = true;
+    mgmt_token_file = "/etc/nexus/mgmt.token";
+    mgmt_target_port = cfg.mgmt.targetPort;
+  } else { });
 in
 {
   options.services.nexus-node = {
@@ -142,6 +149,29 @@ in
       default = [ ];
       description = "Custom iroh relay URLs (empty = n0 public relays; iroh transport only).";
     };
+
+    # Mgmt tunnel (option parity with the canonical module's
+    # services.nexus-node.mgmt — docs/MGMT_TUNNEL.md in the private
+    # repo). Operator SSH over the overlay, no inbound ports; a
+    # shared token gates the tunnel, sshd's authorized_keys gates
+    # the shell.
+    mgmt = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Enable the mgmt tunnel ALPN (iroh transport only): operator SSH over the overlay, no inbound ports.";
+      };
+      tokenFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Host path to the shared tunnel token (single line, mode 0600). Bind-mounted into the container at /etc/nexus/mgmt.token (node.json points the binary there). Null/empty = mgmt enabled but nobody allowed.";
+      };
+      targetPort = lib.mkOption {
+        type = lib.types.port;
+        default = 22;
+        description = "Container-local port mgmt tunnels reach (default 22 = the sshd you run inside/beside the container). Only this port is ever dialable, loopback only.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -176,6 +206,10 @@ in
           "-e NEXUS_LOKI_URL=${cfg.lokiUrl}"
         ] ++ lib.optionals (cfg.metricsOtlpUrl != null) [
           "-e NEXUS_METRICS_OTLP_URL=${cfg.metricsOtlpUrl}"
+        ] ++ lib.optionals (cfg.mgmt.enable && cfg.mgmt.tokenFile != null) [
+          # Host-local secret material — bind-mounted read-only, never
+          # baked into the image or the world-readable node.json.
+          "-v ${toString cfg.mgmt.tokenFile}:/etc/nexus/mgmt.token:ro"
         ] ++ [
           cfg.containerImage
         ]);
