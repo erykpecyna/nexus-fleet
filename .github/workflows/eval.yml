@@ -58,3 +58,10 @@ jobs:
           expected='[22,8080,9464]'
           [ "$actual" = "$expected" ] || { echo "::error::allowedTCPPorts = $actual, expected $expected"; exit 1; }
           echo "firewall: $actual"
+      - name: Gate 6 — mgmt option surface (mirror parity tripwire)
+        run: |
+          actual=$(nix eval --json .#nixosConfigurations.node1.config.services.nexus-node.mgmt \
+            --apply 'm: { inherit (m) enable targetPort; tokenFile = if m.tokenFile == null then null else "set"; operatorKeysFile = if m.operatorKeysFile == null then null else "set"; }')
+          expected='{"enable":false,"operatorKeysFile":null,"targetPort":22,"tokenFile":null}'
+          [ "$actual" = "$expected" ] || { echo "::error::mgmt option defaults = $actual, expected $expected"; exit 1; }
+          echo "mgmt defaults: $actual"

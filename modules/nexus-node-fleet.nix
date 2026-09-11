@@ -166,10 +166,15 @@ in
         default = null;
         description = "Host path to the shared tunnel token (single line, mode 0600). Bind-mounted into the container at /etc/nexus/mgmt.token (node.json points the binary there). Null/empty = mgmt enabled but nobody allowed.";
       };
+      operatorKeysFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Host path to an authorized_keys-format file with the fleet operator public key (0600, provisioned at deploy like tokenFile). Bind-mounted into the container at /etc/nexus/authorized_keys (the in-image sshd's AuthorizedKeysFile — the image ships sshd on 127.0.0.1:22, key-only). Never bake keys into the image or node.json. Null = tunnel up but sshd permits no one (fail-closed).";
+      };
       targetPort = lib.mkOption {
         type = lib.types.port;
         default = 22;
-        description = "Container-local port mgmt tunnels reach (default 22 = the sshd you run inside/beside the container). Only this port is ever dialable, loopback only.";
+        description = "Container-local port mgmt tunnels reach (default 22 = the in-image sshd). Only this port is ever dialable, loopback only.";
       };
     };
   };
@@ -210,6 +215,13 @@ in
           # Host-local secret material — bind-mounted read-only, never
           # baked into the image or the world-readable node.json.
           "-v ${toString cfg.mgmt.tokenFile}:/etc/nexus/mgmt.token:ro"
+        ] ++ lib.optionals (cfg.mgmt.enable && cfg.mgmt.operatorKeysFile != null) [
+          # Operator identity is mounted data too: the in-image sshd
+          # reads /etc/nexus/authorized_keys (key-only, loopback
+          # only — reachable solely through the token-gated tunnel).
+          # The image wrapper normalizes ownership/mode before sshd
+          # starts (sshd StrictModes).
+          "-v ${toString cfg.mgmt.operatorKeysFile}:/etc/nexus/authorized_keys:ro"
         ] ++ [
           cfg.containerImage
         ]);
