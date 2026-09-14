@@ -17,7 +17,7 @@
 #     production.
 # Image contract: REST 8080, gRPC 9090 (legacy), metrics 9464, state
 # VOLUME /var/lib/nexus (iroh key persistence), config
-# /etc/nexus/node.json, NEXUS_LOKI_URL + NEXUS_METRICS_OTLP_URL read
+# /etc/nexus/node.json, NEXUS_LOGS_URL + NEXUS_METRICS_OTLP_URL read
 # by the binary.
 { config, lib, pkgs, ... }:
 
@@ -36,7 +36,7 @@ let
     transport = cfg.transport;
     key_path = cfg.keyPath;
     relay_urls = if cfg.relayUrls != [ ] then cfg.relayUrls else null;
-    loki_url = cfg.lokiUrl;
+    logs_url = cfg.logsUrl;
     metrics_otlp_url = cfg.metricsOtlpUrl;
     rest_port = 8080;
     metrics_port = if cfg.metricsEnabled then 9464 else null;
@@ -108,12 +108,13 @@ in
       description = "Host-side Prometheus metrics port (container listens on 9464; this is the -p mapping).";
     };
 
-    lokiUrl = lib.mkOption {
+    logsUrl = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
       description =
-        "OTLP/HTTP URL for Loki log ingest "
-        + "(e.g. http://loki:3100/otlp/v1/logs). Null = disabled.";
+        "OTLP/HTTP URL for log ingest (VictoriaLogs, "
+        + "(e.g. http://victorialogs:9428/insert/opentelemetry/v1/logs). "
+        + "Null = disabled.";
     };
 
     metricsOtlpUrl = lib.mkOption {
@@ -207,8 +208,8 @@ in
           "-p ${toString cfg.metricsPort}:9464"
         ] ++ lib.optionals (cfg.transport == "grpc") [
           "-p 9090:9090"
-        ] ++ lib.optionals (cfg.lokiUrl != null) [
-          "-e NEXUS_LOKI_URL=${cfg.lokiUrl}"
+        ] ++ lib.optionals (cfg.logsUrl != null) [
+          "-e NEXUS_LOGS_URL=${cfg.logsUrl}"
         ] ++ lib.optionals (cfg.metricsOtlpUrl != null) [
           "-e NEXUS_METRICS_OTLP_URL=${cfg.metricsOtlpUrl}"
         ] ++ lib.optionals (cfg.mgmt.enable && cfg.mgmt.tokenFile != null) [
