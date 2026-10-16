@@ -62,6 +62,6 @@ jobs:
         run: |
           actual=$(nix eval --json .#nixosConfigurations.node1.config.services.nexus-node.mgmt \
             --apply 'm: { inherit (m) enable targetPort; tokenFile = if m.tokenFile == null then null else "set"; operatorKeysFile = if m.operatorKeysFile == null then null else "set"; }')
-          expected='{"enable":false,"operatorKeysFile":null,"targetPort":22,"tokenFile":null}'
-          [ "$actual" = "$expected" ] || { echo "::error::mgmt option defaults = $actual, expected $expected"; exit 1; }
-          echo "mgmt defaults: $actual"
+          expected='{"enable":true,"operatorKeysFile":"set","targetPort":22,"tokenFile":"set"}'
+          [ "$actual" = "$expected" ] || { echo "::error::mgmt option surface = $actual, expected $expected"; exit 1; }
+          echo "mgmt: $actual"
