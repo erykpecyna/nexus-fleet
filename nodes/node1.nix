@@ -19,12 +19,16 @@
     # TODO(operator): real geographic location of the VM host.
     latitude = null;
     longitude = null;
-    # Log shipping to the monitoring stack on .213 (VictoriaLogs
-    # OTLP ingest).
-    logsUrl = "http://192.168.0.213:9428/insert/opentelemetry/v1/logs";
-    # Metrics push (VictoriaMetrics OTLP ingest) — the node appears
-    # in Grafana on its first push; no scrape config needed.
-    metricsOtlpUrl = "http://192.168.0.213:8428/opentelemetry/v1/metrics";
+    # Log shipping to VictoriaLogs (OTLP ingest). Docker DNS name on
+    # the .213 `nexus-net` user-defined network — Unraid custom
+    # networks (br0, macvlan OR ipvlan) cannot reach the host's own
+    # IP, so the URL is a container name, never 192.168.0.213 (found
+    # live 2026-10-19: every OTLP push from a br0 node timed out;
+    # node-1 runs dual-network br0 + nexus-net).
+    logsUrl = "http://victorialogs:9428/insert/opentelemetry/v1/logs";
+    # Metrics push (VictoriaMetrics OTLP ingest) — same nexus-net
+    # DNS rationale; the node appears in Grafana on its first push.
+    metricsOtlpUrl = "http://victoria-metrics:8428/opentelemetry/v1/metrics";
     # Mgmt tunnel (docs/MGMT_TUNNEL.md in the private repo): operator
     # SSH over the iroh overlay — zero inbound ports (the tunnel rides
     # the node's own iroh endpoint; the firewall above is unchanged).
