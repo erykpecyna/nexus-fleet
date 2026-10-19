@@ -213,16 +213,21 @@ in
         ] ++ lib.optionals (cfg.metricsOtlpUrl != null) [
           "-e NEXUS_METRICS_OTLP_URL=${cfg.metricsOtlpUrl}"
         ] ++ lib.optionals (cfg.mgmt.enable && cfg.mgmt.tokenFile != null) [
-          # Host-local secret material — bind-mounted read-only, never
-          # baked into the image or the world-readable node.json.
-          "-v ${toString cfg.mgmt.tokenFile}:/etc/nexus/mgmt.token:ro"
+          # Host-local secret material — bind-mounted, never baked
+          # into the image or the world-readable node.json. MOUNT IS
+          # WRITABLE: the image wrapper chmods 600 + chowns 0:0
+          # before sshd starts (sshd StrictModes); a :ro mount makes
+          # that fail with EROFS (found live on node-1, 2026-10-19 —
+          # the wrapper now degrades to a warning on read-only).
+          "-v ${toString cfg.mgmt.tokenFile}:/etc/nexus/mgmt.token"
         ] ++ lib.optionals (cfg.mgmt.enable && cfg.mgmt.operatorKeysFile != null) [
           # Operator identity is mounted data too: the in-image sshd
           # reads /etc/nexus/authorized_keys (key-only, loopback
           # only — reachable solely through the token-gated tunnel).
           # The image wrapper normalizes ownership/mode before sshd
-          # starts (sshd StrictModes).
-          "-v ${toString cfg.mgmt.operatorKeysFile}:/etc/nexus/authorized_keys:ro"
+          # starts (sshd StrictModes) — writable mount, same EROFS
+          # reasoning as the token above.
+          "-v ${toString cfg.mgmt.operatorKeysFile}:/etc/nexus/authorized_keys"
         ] ++ [
           cfg.containerImage
         ]);
