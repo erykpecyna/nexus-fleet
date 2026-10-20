@@ -9,12 +9,12 @@
     # nexus release pipeline. EXPLICIT version pin — never a mutable
     # tag (:latest is the same trade as nixpkgs-unstable: convenient
     # for dev, wrong for a node you don't watch). Bump on release.
-    # NOTE (2026-10-16): 0.2.0 is the FIRST released cut — 0.1.x was
-    # never shipped on this plane (the flake version jumped straight
-    # to 0.2.0 when the mgmt tunnel landed in the image).
+    # 0.2.1 (2026-10-20): the 2.4 update-rehearsal bump (pure version
+    # change; carries the wrapper EROFS fix). 0.2.0 was the FIRST
+    # released cut — 0.1.x never shipped on this plane.
     # TODO(2.4 rehearsal): consider digest pinning
     # (ghcr.io/erykpecyna/nexus-node@sha256:...).
-    containerImage = "ghcr.io/erykpecyna/nexus-node:0.2.0";
+    containerImage = "ghcr.io/erykpecyna/nexus-node:0.2.1";
     # Module contract: null → key omitted from node.json.
     # TODO(operator): real geographic location of the VM host.
     latitude = null;
