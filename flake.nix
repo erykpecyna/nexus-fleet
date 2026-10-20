@@ -35,14 +35,31 @@
         ];
       };
 
-      # Bootable qcow2 disk image for node1 (hypervisor import).
+      # node2 = first joiner (roadmap 2.5 skew drill: pins one
+      # release behind node1; seed joins node1's iroh NodeId).
+      nixosConfigurations.node2 = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          archetype
+          ./nodes/node2.nix
+          nixos-generators.nixosModules.qcow
+        ];
+      };
+
+      # Bootable qcow2 disk images (hypervisor import).
       # Docker-only fleet: no nexus source build here — the node boots
       # and pulls its nexus image at runtime. Evaluation is fast.
-      packages.${system}.node1-qcow2 =
-        nixos-generators.nixosGenerate {
+      packages.${system} = {
+        node1-qcow2 = nixos-generators.nixosGenerate {
           inherit system;
           format = "qcow";
           modules = [ archetype ./nodes/node1.nix ];
         };
+        node2-qcow2 = nixos-generators.nixosGenerate {
+          inherit system;
+          format = "qcow";
+          modules = [ archetype ./nodes/node2.nix ];
+        };
+      };
     };
 }

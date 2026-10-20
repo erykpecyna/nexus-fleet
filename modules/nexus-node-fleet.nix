@@ -80,7 +80,7 @@ in
     seed = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "Seed node to join: iroh NodeId hex. Null = standalone seed.";
+      description = "Seed node to join: iroh NodeId in BASE32 (52 chars — the first 52 chars of the seed's nexus_mgmt_ticket after \"endpoint\"; the --seed CLI help saying \"hex\" is stale text — the parser, public_key_from_base32, wants base32). Null = standalone seed.";
     };
     advertiseAddress = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
