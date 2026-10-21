@@ -15,11 +15,17 @@
   services.nexus-node = {
     nodeId = "node-2";
     # Docker-only fleet: prebuilt image from the nexus release
-    # pipeline. EXPLICIT version pin — never a mutable tag. 0.2.0
-    # (deliberately one release behind node-1's 0.2.1): the skew
-    # drill's whole point — a fleet of independent nodes must have a
-    # defined cross-version story before it grows.
-    containerImage = "ghcr.io/erykpecyna/nexus-node:0.2.0";
+    # pipeline. EXPLICIT version pin — never a mutable tag.
+    # 0.3.0 (2026-10-21): the Phase-3 OBSERVABLE-SKEW drill — the
+    # joiner-first canary. node-2 (joiner) moves to the 0.3.0 compat
+    # cut while node-1 (anchor) deliberately stays at 0.2.1: the new
+    # binary's peer-version observability must fire in VictoriaLogs
+    # (nexus_peer_version peer=node-1 build=(none: pre-observability
+    # binary) ours=0.3.0) while the join + cross-node recall keep
+    # working — the exact scenario the 2.4a baseline drill proved
+    # INVISIBLE. 0.2.0 was the first-join pin (the 2.4a baseline:
+    # joined live, skew invisible, live seed-extraction lesson).
+    containerImage = "ghcr.io/erykpecyna/nexus-node:0.3.0";
     # Module contract: null → key omitted from node.json (defaults
     # apply). Both fleet nodes sit at the default position (0,0) —
     # same partition, simple JoinAccept path at 2 nodes.
