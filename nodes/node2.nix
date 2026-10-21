@@ -25,13 +25,16 @@
     # same partition, simple JoinAccept path at 2 nodes.
     latitude = null;
     longitude = null;
-    # Join node-1: its iroh NodeId, BASE32 (52 chars — the first 52
-    # chars of its nexus_mgmt_ticket after "endpoint"; from VL:
-    # {service_name="nexus-node"} |= "nexus_mgmt_ticket").
-    # NOTE: the --seed CLI help text says "hex" — stale; the parser
-    # (public_key_from_base32) wants base32. A hex value fails to
-    # parse and the join silently never connects.
-    seed = "adxdeetuzj4biqpuequxhksmdhjlr7ptz6q4g6g5i6msgebd3ob3ib";
+    # Join node-1: its iroh NodeId, HEX (64 chars — the seed parser,
+    # iroh decode_base32_hex, accepts hex or base32 of the raw 32 key
+    # bytes). NEVER slice this from a ticket by hand: the ticket body
+    # is postcard-serialized ([variant byte][key][addrs]) then
+    # base32'd, so its first chars are the variant byte + 31 key
+    # bytes — parses as NOTHING, and the join silently retries every
+    # 5s forever (live lesson 2026-10-21: node-2's first deploy
+    # shipped such a slice; health's joined=false was the only
+    # symptom). Extract with: scripts/seed-from-ticket.sh <TICKET>.
+    seed = "ee321274ca781441f4242973aa4c19d2b8fdf3cfa1c378dd4799231023db83b4";
     # Log shipping to VictoriaLogs (OTLP ingest) — docker DNS name
     # on the .213 nexus-net network (Unraid custom networks cannot
     # reach the host's own IP; see node1.nix for the live lesson).
