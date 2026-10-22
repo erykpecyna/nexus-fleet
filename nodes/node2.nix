@@ -16,16 +16,27 @@
     nodeId = "node-2";
     # Docker-only fleet: prebuilt image from the nexus release
     # pipeline. EXPLICIT version pin — never a mutable tag.
+    # 0.4.0 (2026-10-22): the honest-severities logging reform —
+    # node-2 is the CANARY (joiner-first, as always): it moves to
+    # 0.4.0 first while node-1 still runs 0.2.1; the mixed-version
+    # release gate already proved 0.3.0↔0.4.0 in CI before the tag
+    # could exist. Post-rollout, the note lines (nexus_join,
+    # nexus_peer_version, nexus_mgmt_ticket, nexus_mgmt_audit
+    # open/closed) ship at severity_text=INFO in VictoriaLogs (deny
+    # = WARNING) — the retired severity-as-visibility ERROR notes are
+    # gone; queries keyed on _msg prefixes are unaffected. The
+    # acceptance soak (roadmap 2.4b): ERROR = 0/hr, WARNING ≈ 0/hr,
+    # INFO ≈ boot narrative only.
     # 0.3.0 (2026-10-21): the Phase-3 OBSERVABLE-SKEW drill — the
-    # joiner-first canary. node-2 (joiner) moves to the 0.3.0 compat
-    # cut while node-1 (anchor) deliberately stays at 0.2.1: the new
+    # joiner-first canary. node-2 (joiner) moved to the 0.3.0 compat
+    # cut while node-1 (anchor) deliberately stayed at 0.2.1: the new
     # binary's peer-version observability must fire in VictoriaLogs
     # (nexus_peer_version peer=node-1 build=(none: pre-observability
     # binary) ours=0.3.0) while the join + cross-node recall keep
     # working — the exact scenario the 2.4a baseline drill proved
     # INVISIBLE. 0.2.0 was the first-join pin (the 2.4a baseline:
     # joined live, skew invisible, live seed-extraction lesson).
-    containerImage = "ghcr.io/erykpecyna/nexus-node:0.3.0";
+    containerImage = "ghcr.io/erykpecyna/nexus-node:0.4.0";
     # Module contract: null → key omitted from node.json (defaults
     # apply). Both fleet nodes sit at the default position (0,0) —
     # same partition, simple JoinAccept path at 2 nodes.

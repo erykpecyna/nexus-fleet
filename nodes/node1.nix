@@ -9,6 +9,14 @@
     # nexus release pipeline. EXPLICIT version pin — never a mutable
     # tag (:latest is the same trade as nixpkgs-unstable: convenient
     # for dev, wrong for a node you don't watch). Bump on release.
+    # 0.4.0 (2026-10-22): the honest-severities logging reform (rate
+    # charter in the repo's AGENTS.md). node-1 JUMPS 0.2.1→0.4.0 —
+    # deliberate two-version skip INSIDE the window: protocol v1
+    # throughout, additive-only wire, and the release gate proves
+    # each adjacent pair (0.2.1↔0.3.0 at the 0.3.0 cut, 0.3.0↔0.4.0
+    # at this cut), so transitivity holds; live interop is now
+    # OBSERVABLE (nexus_peer_version notes), so any regression would
+    # be loud. node-2 canaries first (joiner-first, as always).
     # 0.2.1 (2026-10-20): the 2.4 update-rehearsal bump (pure version
     # change; carries the wrapper EROFS fix). 0.2.0 was the FIRST
     # released cut — 0.1.x never shipped on this plane. The 2.4
@@ -16,7 +24,7 @@
     # stable throughout) proved version-tag pinning end-to-end;
     # digest pinning (@sha256:…, digests in each release run
     # summary) remains optional hardening.
-    containerImage = "ghcr.io/erykpecyna/nexus-node:0.2.1";
+    containerImage = "ghcr.io/erykpecyna/nexus-node:0.4.0";
     # Module contract: null → key omitted from node.json.
     # TODO(operator): real geographic location of the VM host.
     latitude = null;
