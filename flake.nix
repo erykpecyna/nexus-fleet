@@ -6,7 +6,8 @@
     # workaround existed only because this repo consumed the private
     # nexus source, which it no longer does; POLICY: the fleet is
     # docker-only, it never reads nexus source, only prebuilt
-    # ghcr.io/erykpecyna/nexus-node:<version> images). The pin
+    # ghcr.io/erykpecyna/nexus-node images — immutable :X.Y.Z
+    # releases plus the :canary/:stable channels, 2.4c). The pin
     # matches the nexus repo's nixpkgs rev (its module/VM-test
     # evidence lives against that nixpkgs); bump deliberately.
     nixpkgs.url = "github:NixOS/nixpkgs/d2f67949798825fe853f7c5d0492b8bf016d3f88";
@@ -35,8 +36,8 @@
         ];
       };
 
-      # node2 = first joiner (roadmap 2.5 skew drill: pins one
-      # release behind node1; seed joins node1's iroh NodeId).
+      # node2 = the standing canary (2.4c: tracks :canary — every
+      # release lands here first; seed joins node1's iroh NodeId).
       nixosConfigurations.node2 = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [

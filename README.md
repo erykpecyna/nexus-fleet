@@ -6,9 +6,11 @@ self-sufficient; there are no secrets in this repo.
 
 **Docker-only fleet (policy)**: this repo never reads or builds the
 nexus source — "grabbing a built binary is ok, reading source is
-NOT." Nodes run the prebuilt image `ghcr.io/erykpecyna/nexus-node:<version>`
-published by the nexus repo's release pipeline. This repo therefore
-holds no nexus input and no nexus-read credentials, ever.
+NOT." Nodes run the prebuilt image `ghcr.io/erykpecyna/nexus-node:<version | canary | stable>`
+published by the nexus repo's release pipeline (immutable `:X.Y.Z`
+releases plus the two channel tags — see "Updating a node image").
+This repo therefore holds no nexus input and no nexus-read
+credentials, ever.
 
 ## Layout
 
@@ -22,7 +24,7 @@ holds no nexus input and no nexus-read credentials, ever.
   docker service, sshd (key-only), update-trust pubkey at
   `/etc/nexus/update-trust.pub`
 - `nodes/*.nix` — one file per node: hostname, id, lat/lng, seed,
-  pinned image tag
+  image tag (channel or version pin)
 - `keys/update-trust.pub` — minisign trust anchor
 
 ## Provisioning a new node
@@ -31,8 +33,10 @@ holds no nexus input and no nexus-read credentials, ever.
    `nodeId`, lat/lng. A node that joins an existing overlay sets
    `services.nexus-node.seed` (iroh NodeId hex of a member); a node
    that starts its own overlay (standalone seed) leaves it unset.
-   Pin the image: `containerImage =
-   "ghcr.io/erykpecyna/nexus-node:<released-version>"`.
+   Set the image: `containerImage =
+   "ghcr.io/erykpecyna/nexus-node:stable"` (a canary node would
+   track `:canary`; an explicit `:X.Y.Z` pin also passes the eval
+   gate).
 2. Add the node to `flake.nix` (a `nixosConfigurations.<name>` entry
    plus a `packages.<system>.<name>-qcow2` following the node1
    pattern).
@@ -47,17 +51,35 @@ holds no nexus input and no nexus-read credentials, ever.
    `/etc/nexus/node.json` (`id`, `lat`, `lng`; NO `seed` key on a
    hub/seed node).
 
-## Updating a node image
+## Updating a node image (2.4c — channel tags)
 
-1. Bump `containerImage` in `nodes/<name>.nix` to the released tag
-   and push (CI eval gates run on push).
-2. On the node (or any docker host running the node):
-   `docker pull ghcr.io/erykpecyna/nexus-node:<new-version>` then
-   restart the service (systemd restarts the `docker run`, or on a
-   plain docker host: `docker compose pull && docker compose up -d`).
-   While the GHCR package is private, hosts need a one-time
-   `docker login ghcr.io` (PAT with `read:packages`; keep the PAT on
-   the host only — never in this repo).
+node-2 tracks `:canary`, node-1 tracks `:stable` (set in
+`nodes/*.nix` — the files no longer change per release). The tags
+move only inside logged nexus-repo workflow runs:
+
+- `:canary` moves automatically as the LAST step of every release
+  run (after the §6 mixed-version gate + GH release).
+- `:stable` moves via the manual `promote` dispatch, once node-2 has
+  soaked the canary. Promote doubles as the ROLLBACK lever.
+
+Update procedure (no repo change, no yaml transfer):
+
+1. Press "update stack" in the Unraid compose UI on node-2 (or
+   `docker compose pull && docker compose up -d` on the host);
+   verify the soak (health version, VL notes, cross-node recall).
+2. From the nexus repo: `gh workflow run promote -f
+   version=<X.Y.Z> -f channel=stable`, then press "update stack"
+   on node-1.
+   Pressing update on node-1 before the promote re-pulls the same
+   digest and does nothing — canary-first ordering is enforced by
+   the pipeline, not by discipline.
+
+Rollback = promote an older version, press update stack. The ledger
+of what runs where = GH releases + promote run history + VL
+`nexus_peer_version` notes. While the GHCR package is private,
+hosts need a one-time `docker login ghcr.io` (PAT with
+`read:packages`; keep the PAT on the host only — never in this
+repo).
 
 ## Local iteration (dev box, nexus repo)
 

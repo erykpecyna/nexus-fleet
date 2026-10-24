@@ -14,8 +14,9 @@
   imports = [ ../modules/nexus-node-fleet.nix ];
 
   # Every fleet node runs the service. containerImage has NO default
-  # in the mirror module on purpose — a node file that forgets to pin
-  # an image fails evaluation loudly (never float on a mutable tag).
+  # in the mirror module on purpose — a node file that forgets to set
+  # an image fails evaluation loudly (the eval gate allowlists
+  # release tags + the two :canary/:stable channels; :latest banned).
   services.nexus-node.enable = true;
 
   services.openssh = {

@@ -59,9 +59,12 @@ in
     containerImage = lib.mkOption {
       type = lib.types.str;
       description =
-        "Docker image to run. Pin an explicit version tag — a node "
-        + "must never float on a mutable tag (e.g. "
-        + ''ghcr.io/erykpecyna/nexus-node:0.1.0, NOT :latest).'';
+        "Docker image to run. Pin an explicit tag: an immutable "
+        + "release (ghcr.io/erykpecyna/nexus-node:0.1.0) or a "
+        + "sanctioned channel (:canary — the nexus release pipeline "
+        + "moves it; :stable — the promote workflow moves it, the "
+        + "rollback lever). :latest and every other tag are banned "
+        + "(the eval gate enforces the allowlist).";
     };
 
     nodeId = lib.mkOption {

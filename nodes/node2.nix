@@ -15,8 +15,15 @@
   services.nexus-node = {
     nodeId = "node-2";
     # Docker-only fleet: prebuilt image from the nexus release
-    # pipeline. EXPLICIT version pin — never a mutable tag.
-    # 0.4.0 (2026-10-22): the honest-severities logging reform —
+    # pipeline. CHANNEL REF (2.4c): :canary moves automatically as
+    # the LAST step of every release run (after the §6 gate + GH
+    # release) — node-2 is the STANDING CANARY: every release lands
+    # here first, gets its ~15-min soak (2.4b acceptance: ERROR 0,
+    # WARNING ≈0, INFO boot-narrative only), then the operator
+    # promotes :stable for node-1. Ledger of what runs where = GH
+    # releases + promote run history + VL nexus_peer_version notes.
+    # :latest stays banned (eval gate allowlist). Version-pin
+    # history: 0.4.0 (2026-10-22): the honest-severities logging reform —
     # node-2 is the CANARY (joiner-first, as always): it moves to
     # 0.4.0 first while node-1 still runs 0.2.1; the mixed-version
     # release gate already proved 0.3.0↔0.4.0 in CI before the tag
@@ -36,7 +43,7 @@
     # working — the exact scenario the 2.4a baseline drill proved
     # INVISIBLE. 0.2.0 was the first-join pin (the 2.4a baseline:
     # joined live, skew invisible, live seed-extraction lesson).
-    containerImage = "ghcr.io/erykpecyna/nexus-node:0.4.0";
+    containerImage = "ghcr.io/erykpecyna/nexus-node:canary";
     # Module contract: null → key omitted from node.json (defaults
     # apply). Both fleet nodes sit at the default position (0,0) —
     # same partition, simple JoinAccept path at 2 nodes.
